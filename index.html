@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exploding Kittens</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Main Menu -->
+        <div id="main-menu" class="screen active">
+            <div class="menu-content glass-panel">
+                <h1>EXPLODING KITTENS</h1>
+                <p>A card game for people who are into kittens and explosions.</p>
+                <div class="menu-buttons">
+                    <button id="btn-local-mp" class="primary-btn">Local Multiplayer</button>
+                    <button id="btn-ai" class="secondary-btn">Play vs AI</button>
+                </div>
+            </div>
+            <!-- Background Decorations -->
+            <div class="bg-shape shape1"></div>
+            <div class="bg-shape shape2"></div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <header class="game-header glass-panel">
+                <div id="turn-indicator">Player 1's Turn</div>
+                <div id="cards-remaining">Cards in Deck: <span id="deck-count">0</span></div>
+            </header>
+
+            <div class="game-board">
+                <!-- Opponent Area (Top) -->
+                <div id="opponent-area" class="player-area opponent">
+                    <div class="status-overlay glass-panel">
+                        <h3>Opponent</h3>
+                        <p>Cards: <span id="opponent-hand-count">0</span></p>
+                    </div>
+                    <div id="opponent-hand" class="hand-container hidden-cards">
+                        <!-- Card backs will be appended here -->
+                    </div>
+                </div>
+
+                <!-- Center Play Area -->
+                <div class="center-area">
+                    <div id="draw-pile" class="card-pile pile-pulse">
+                        <div class="card card-back">
+                            <span>DRAW</span>
+                        </div>
+                    </div>
+                    <div id="discard-pile" class="card-pile">
+                        <!-- Discarded cards will be appended here -->
+                        <div class="pile-placeholder">Discard</div>
+                    </div>
+                </div>
+
+                <!-- Active Player Area (Bottom) -->
+                <div id="player-area" class="player-area active-player">
+                    <div class="status-overlay glass-panel">
+                        <h3>You</h3>
+                        <div class="action-buttons">
+                            <button id="btn-end-turn" class="action-btn">End Turn (Draw)</button>
+                        </div>
+                    </div>
+                    <div id="player-hand" class="hand-container">
+                        <!-- Player cards will be appended here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modal for See The Future / Favor / Defuse -->
+            <div id="action-modal" class="modal hidden">
+                <div class="modal-content glass-panel">
+                    <h2 id="modal-title">Action Required</h2>
+                    <p id="modal-desc"></p>
+                    <div id="modal-custom-content"></div>
+                    <button id="modal-close" class="primary-btn hidden">Continue</button>
+                    <button id="modal-alt-btn" class="secondary-btn hidden">Alternative</button>
+                </div>
+            </div>
+
+            <!-- Pass Device Screen -->
+            <div id="pass-screen" class="modal hidden" style="z-index: 200;">
+                <div class="modal-content glass-panel">
+                    <h2>Pass The Device</h2>
+                    <p id="pass-message">It is now Player 2's turn. Please hand over the device.</p>
+                    <button id="btn-ready" class="primary-btn">I'm Ready</button>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
