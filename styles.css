@@ -83,6 +83,7 @@ body {
     margin-bottom: 1rem;
     background: linear-gradient(135deg, var(--accent-red), var(--accent-orange));
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     letter-spacing: -1px;
 }
@@ -276,6 +277,9 @@ button {
     border: 6px solid;
     border-radius: 12px;
     background-color: #f8f8f8;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .card-title {
@@ -295,7 +299,7 @@ button {
     justify-content: center;
 }
 
-/* Card Types */
+/* Card Types - Fallback Colors */
 .card-defuse .card-inner { border-color: #4CAF50; }
 .card-explode .card-inner { border-color: var(--accent-red); background-color: #222; color: white; }
 .card-attack .card-inner { border-color: #FF9800; }
@@ -305,6 +309,17 @@ button {
 .card-seethefuture .card-inner { border-color: #E91E63; }
 .card-nope .card-inner { border-color: #F44336; }
 .card-cat1 .card-inner, .card-cat2 .card-inner, .card-cat3 .card-inner, .card-cat4 .card-inner, .card-cat5 .card-inner { border-color: #607D8B; }
+
+/* Let's hide the fallback text ONLY if we have background images working well. 
+   For now, we'll keep the text but push it to the top/bottom so the image is visible. */
+.card-inner.has-image .card-title {
+    background: rgba(255,255,255,0.8);
+    border-radius: 4px;
+    padding: 2px;
+}
+.card-inner.has-image .card-desc {
+    display: none;
+}
 
 .card-back {
     background: repeating-linear-gradient(45deg, var(--accent-red), var(--accent-red) 10px, #a81d16 10px, #a81d16 20px);
