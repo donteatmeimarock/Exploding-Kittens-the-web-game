@@ -197,7 +197,6 @@ function setupConnection() {
     state.conn.on('data', (data) => {
         if (data.type === 'STATE_SYNC') {
             state = { ...state, ...data.state };
-            if (state.isHost) state.isHost = false; // Ensure joining player remains client
             render();
         } else if (data.type === 'ACTION_SYNC') {
             handleNetworkAction(data.action, data.payload);
@@ -245,10 +244,8 @@ function handleNetworkAction(action, payload) {
 }
 
 // Deck Management
-function setupDeck() {
-    state.deck = [];
-    state.discardPile = [];
-    const baseDeck = [
+function getBaseDeck() {
+    return [
         ...Array(4).fill(CardTypes.ATTACK),
         ...Array(4).fill(CardTypes.SKIP),
         ...Array(4).fill(CardTypes.FAVOR),
@@ -261,10 +258,11 @@ function setupDeck() {
         ...Array(4).fill(CardTypes.CAT4),
         ...Array(4).fill(CardTypes.CAT5),
     ];
+}
 
-    baseDeck.push(CardTypes.DEFUSE, CardTypes.DEFUSE);
-
-    state.deck = shuffle(baseDeck);
+function setupDeck() {
+    state.discardPile = [];
+    state.deck = shuffle(getBaseDeck());
 
     state.players = [
         { id: 'player1', name: 'Player 1', hand: [], isAI: false },
@@ -293,8 +291,16 @@ function dealInitialHands() {
 }
 
 function insertExplodingKittens() {
-    state.deck.push(CardTypes.EXPLODE);
-    state.deck = shuffle(state.deck);
+    state.deck.push(CardTypes.EXPLODE); // 1 Exploding Kitten for 2 players
+    state.deck.push(...Array(4).fill(CardTypes.DEFUSE)); // Remaining 4 Defuse cards
+    state.deck = shuffle(state.deck); // Reshuffle with Kittens and Defuses
+}
+
+function refillDeck() {
+    const newDeck = getBaseDeck();
+    newDeck.push(CardTypes.EXPLODE);
+    newDeck.push(...Array(4).fill(CardTypes.DEFUSE));
+    state.deck = shuffle(newDeck);
 }
 
 // Actions
@@ -307,7 +313,13 @@ function handleDrawAction() {
 }
 
 function drawCard(playerIndex) {
-    if (state.isGameOver || state.deck.length === 0) return;
+    if (state.isGameOver) return; // Removed deck.length===0 block to allow refill
+
+    if (state.deck.length === 0) {
+        refillDeck();
+        sendNetworkState();
+        showModal("Deck Refilled!", "The draw pile ran out of cards, so a brand new deck was magically shuffled in.", "OK", hideModal);
+    }
 
     const card = state.deck.pop();
     const player = state.players[playerIndex];
