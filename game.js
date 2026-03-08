@@ -801,27 +801,36 @@ function createCardElement(cardType, isInteractable = false, isSelected = false)
 
     // Determine if we have an image for this card type yet
     let styleAttr = '';
-    let classExtra = '';
+    let classExtra = 'has-image';
     
-    // We generated: explode.png, defuse.png, tacocat.png
     if (cardType === CardTypes.EXPLODE) {
         styleAttr = `style="background-image: url('assets/explode.png');"`;
-        classExtra = 'has-image';
     } else if (cardType === CardTypes.DEFUSE) {
         styleAttr = `style="background-image: url('assets/defuse.png');"`;
-        classExtra = 'has-image';
-    } else if (cardType === CardTypes.CAT1) { // Tacocat
+    } else if (cardType === CardTypes.CAT1) {
         styleAttr = `style="background-image: url('assets/tacocat.png');"`;
-        classExtra = 'has-image';
+    } else if (cardType === CardTypes.CAT2) {
+        styleAttr = `style="background-image: url('assets/cattermelon.png');"`;
+    } else if (cardType === CardTypes.CAT3) {
+        styleAttr = `style="background-image: url('assets/hairypotatocat.png');"`;
+    } else if (cardType === CardTypes.CAT4) {
+        styleAttr = `style="background-image: url('assets/beardcat.png');"`;
+    } else if (cardType === CardTypes.CAT5) {
+        styleAttr = `style="background-image: url('assets/rainbowralphingcat.png');"`;
     } else if (cardType === CardTypes.ATTACK) {
         styleAttr = `style="background-image: url('assets/attack.png');"`;
-        classExtra = 'has-image';
     } else if (cardType === CardTypes.SKIP) {
         styleAttr = `style="background-image: url('assets/skip.png');"`;
-        classExtra = 'has-image';
     } else if (cardType === CardTypes.FAVOR) {
         styleAttr = `style="background-image: url('assets/favor.png');"`;
-        classExtra = 'has-image';
+    } else if (cardType === CardTypes.SHUFFLE) {
+        styleAttr = `style="background-image: url('assets/shuffle.png');"`;
+    } else if (cardType === CardTypes.SEEFUTURE) {
+        styleAttr = `style="background-image: url('assets/seethefuture.png');"`;
+    } else if (cardType === CardTypes.NOPE) {
+        styleAttr = `style="background-image: url('assets/nope.png');"`;
+    } else {
+        classExtra = ''; // Fallback for any unknown card
     }
 
     el.innerHTML = `
