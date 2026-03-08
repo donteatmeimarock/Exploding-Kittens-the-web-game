@@ -334,6 +334,9 @@ function drawCard(playerIndex) {
             endTurn();
         } else {
             render();
+            if (state.players[state.currentPlayerIndex].isAI && !state.isGameOver) {
+                setTimeout(playAITurn, 1500);
+            }
         }
     }
 }
@@ -373,6 +376,9 @@ function showDefuseModal(playerIndex) {
                 endTurn();
             } else {
                 render();
+                if (state.players[state.currentPlayerIndex].isAI && !state.isGameOver) {
+                    setTimeout(playAITurn, 1500);
+                }
             }
         });
         return;
@@ -621,7 +627,9 @@ function handleNopePlay(playerIndex) {
 function resolveActionStack() {
     clearTimeout(state.nopeTimer);
     hideModal();
-    UI.modalAltBtn.classList.add('hidden');
+    if (UI.modalAltBtn) {
+        UI.modalAltBtn.classList.add('hidden');
+    }
 
     if (state.actionStack.length === 0) return;
 
@@ -633,6 +641,10 @@ function resolveActionStack() {
 
     state.actionStack = []; // Clear remaining
     render();
+
+    if (state.players[state.currentPlayerIndex].isAI && !state.isGameOver) {
+        setTimeout(playAITurn, 1500);
+    }
 }
 
 function applyCardEffect(cards, playerIndex) {
