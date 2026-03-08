@@ -384,6 +384,11 @@ button {
 }
 
 /* Achievements Screen & Toasts */
+#achievements-screen {
+    justify-content: center;
+    align-items: center;
+}
+
 #achievements-screen .menu-content {
     max-width: 800px;
     width: 90%;
