@@ -63,6 +63,7 @@ const UI = {
     modal: document.getElementById('action-modal'),
     modalTitle: document.getElementById('modal-title'),
     modalDesc: document.getElementById('modal-desc'),
+    modalContent: document.getElementById('modal-custom-content'),
     modalClose: document.getElementById('modal-close'),
     drawPile: document.getElementById('draw-pile'),
     passMessage: document.getElementById('pass-message'),
