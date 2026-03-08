@@ -1,3 +1,17 @@
+window.onerror = function(message, source, lineno, colno, error) {
+    const errDiv = document.createElement('div');
+    errDiv.style.position = 'fixed';
+    errDiv.style.top = '0';
+    errDiv.style.left = '0';
+    errDiv.style.width = '100%';
+    errDiv.style.padding = '20px';
+    errDiv.style.background = 'red';
+    errDiv.style.color = 'white';
+    errDiv.style.zIndex = '999999';
+    errDiv.innerText = `Error: ${message} at ${lineno}:${colno}\n${error ? error.stack : ''}`;
+    document.body.appendChild(errDiv);
+};
+
 // Card Types and Definitions
 const CardTypes = {
     DEFUSE: 'Defuse',
