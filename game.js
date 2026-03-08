@@ -52,14 +52,30 @@ let state = {
     peer: null,
     conn: null,
     isHost: false,
-    networkId: null
+    networkId: null,
+
+    // Achievement Tracking
+    achievements: {
+        'lucky': { id: 'lucky', title: 'I AM LUCKY!', desc: 'Win with 2 Defuses', secret: false, unlocked: false },
+        'favor': { id: 'favor', title: 'Please Please I Need This', desc: 'Use a Favor', secret: false, unlocked: false },
+        'nope': { id: 'nope', title: 'Not Happening!', desc: 'Use a Nope 10 times', secret: false, unlocked: false },
+        'close': { id: 'close', title: 'Close Call', desc: 'Defuse an Exploding Kitten', secret: false, unlocked: false },
+        'ninelives': { id: 'ninelives', title: 'Nine Lives', desc: 'Use a Defuse nine times in a single game', secret: true, unlocked: false },
+        'robbery': { id: 'robbery', title: 'Authorized Robbery', desc: 'Use a pair of cat cards three times in a single game', secret: false, unlocked: false }
+    },
+    stats: {
+        globalNopes: 0,
+        gameDefuses: 0,
+        gamePairs: 0
+    }
 };
 
 // DOM Elements
 const screens = {
     mainMenu: document.getElementById('main-menu'),
     gameScreen: document.getElementById('game-screen'),
-    passScreen: document.getElementById('pass-screen')
+    passScreen: document.getElementById('pass-screen'),
+    achievementsScreen: document.getElementById('achievements-screen')
 };
 
 const UI = {
@@ -90,17 +106,27 @@ const UI = {
     lobbyCodeDisplay: document.getElementById('lobby-code-display'),
     lobbyCodeInput: document.getElementById('lobby-code-input'),
     btnConnect: document.getElementById('btn-connect'),
-    btnCancelLobby: document.getElementById('btn-cancel-lobby')
+    btnCancelLobby: document.getElementById('btn-cancel-lobby'),
+
+    // Achievements
+    btnAchievements: document.getElementById('btn-achievements'),
+    btnCloseAchievements: document.getElementById('btn-close-achievements'),
+    achievementsList: document.getElementById('achievements-list'),
+    toastContainer: document.getElementById('toast-container')
 };
 
 // Initialization
 function init() {
+    loadAchievements();
+
     UI.btnLocal.addEventListener('click', () => startGame('local'));
     UI.btnAI.addEventListener('click', () => startGame('ai'));
     UI.btnHost.addEventListener('click', () => showLobby('host'));
     UI.btnJoin.addEventListener('click', () => showLobby('join'));
     UI.btnCancelLobby.addEventListener('click', hideLobby);
     UI.btnConnect.addEventListener('click', joinNetworkGame);
+    UI.btnAchievements.addEventListener('click', showAchievements);
+    UI.btnCloseAchievements.addEventListener('click', hideAchievements);
     
     UI.drawPile.addEventListener('click', handleDrawAction);
     UI.btnEndTurn.addEventListener('click', handleDrawAction);
@@ -122,6 +148,10 @@ function startGame(mode) {
     state.turnsRemaining = 1;
     state.selectedCards = [];
     state.actionStack = [];
+
+    // Reset per-game achievement stats
+    state.stats.gameDefuses = 0;
+    state.stats.gamePairs = 0;
 
     render();
 }
@@ -369,6 +399,15 @@ function handleExplodingKitten(playerIndex) {
     } else {
         state.isGameOver = true;
         sendNetworkState();
+        
+        // Check for 'I AM LUCKY!' achievement for the other player
+        const winningPlayerIdx = (playerIndex + 1) % state.players.length;
+        const winningPlayer = state.players[winningPlayerIdx];
+        const defuseCount = winningPlayer.hand.filter(c => c === CardTypes.DEFUSE).length;
+        if (!winningPlayer.isAI && defuseCount >= 2) {
+            unlockAchievement('lucky');
+        }
+
         showModal("BOOM!", `${player.name} exploded! Game Over.`, "Restart", () => {
             hideModal();
             if (state.mode === 'online') sendNetworkAction('HIDE_MODAL');
@@ -400,13 +439,19 @@ function showDefuseModal(playerIndex) {
     }
 
     const maxDepth = state.deck.length;
-    const html = `
+    let html = `
         <div style="margin: 15px 0;">
             <p style="font-size: 0.9rem; margin-bottom: 5px;">Secretly choose where to put the Exploding Kitten back.</p>
             <p style="font-size: 0.8rem; color: #ff9500;">0 = Top (next card drawn), ${maxDepth} = Bottom.</p>
             <input type="number" id="kitten-placement" min="0" max="${maxDepth}" value="0" style="padding: 10px; font-size: 1.1rem; width: 100px; text-align: center; margin-top: 10px; border-radius: 8px; border: 1px solid var(--accent-orange); background: #333; color: white;">
         </div>
     `;
+
+    unlockAchievement('close');
+    state.stats.gameDefuses++;
+    if (state.stats.gameDefuses >= 9) {
+        unlockAchievement('ninelives');
+    }
 
     showModal("Defuse Successful!", `You defused the Exploding Kitten!`, "Hide Kitten", () => {
         let pos = parseInt(document.getElementById('kitten-placement').value, 10);
@@ -625,6 +670,13 @@ function promptNope(action) {
 function playNopeFromModal(playerIndex) {
     const nopeIndex = state.players[playerIndex].hand.indexOf(CardTypes.NOPE);
     if (nopeIndex !== -1) {
+        if (!state.players[playerIndex].isAI) {
+            state.stats.globalNopes++;
+            saveAchievements(); // Save new count immediately
+            if (state.stats.globalNopes >= 10) {
+                unlockAchievement('nope');
+            }
+        }
         playCard(playerIndex, [nopeIndex]);
     }
 }
@@ -666,8 +718,15 @@ function applyCardEffect(cards, playerIndex) {
     const isPair = cards.length === 2;
     const targetPlayerIndex = (playerIndex + 1) % 2; // Support for 2 players
     const targetPlayer = state.players[targetPlayerIndex];
+    const player = state.players[playerIndex];
 
     if (isPair) {
+        if (!player.isAI) {
+            state.stats.gamePairs++;
+            if (state.stats.gamePairs >= 3) {
+                unlockAchievement('robbery');
+            }
+        }
         // Steal a random card
         if (targetPlayer.hand.length > 0) {
             const stealIdx = Math.floor(Math.random() * targetPlayer.hand.length);
@@ -713,6 +772,9 @@ function applyCardEffect(cards, playerIndex) {
             }
             break;
         case CardTypes.FAVOR:
+            if (!player.isAI) {
+                unlockAchievement('favor');
+            }
             if (targetPlayer.hand.length > 0) {
                 // Opponent chooses card. In local/AI we will automate a random one for simplicity, 
                 // or random for AI and prompt for P2.
@@ -887,6 +949,96 @@ function showModal(title, desc, btnText, btnAction, customHtml = '') {
 
 function hideModal() {
     UI.modal.classList.add('hidden');
+}
+
+// --- ACHIEVEMENTS LOGIC ---
+
+function loadAchievements() {
+    const saved = localStorage.getItem('ek_achievements');
+    if (saved) {
+        try {
+            const data = JSON.parse(saved);
+            Object.keys(state.achievements).forEach(key => {
+                if (data[key]) state.achievements[key].unlocked = data[key];
+            });
+            if (data.globalNopes) state.stats.globalNopes = data.globalNopes;
+        } catch(e) { console.error("Could not parse saved achievements."); }
+    }
+}
+
+function saveAchievements() {
+    const data = {
+        globalNopes: state.stats.globalNopes
+    };
+    Object.keys(state.achievements).forEach(key => {
+        data[key] = state.achievements[key].unlocked;
+    });
+    localStorage.setItem('ek_achievements', JSON.stringify(data));
+}
+
+function unlockAchievement(id) {
+    const ach = state.achievements[id];
+    if (!ach || ach.unlocked) return; // Already unlocked or invalid
+
+    ach.unlocked = true;
+    saveAchievements();
+    showAchievementToast(ach);
+}
+
+function showAchievementToast(ach) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `
+        <div class="toast-icon">🏆</div>
+        <div class="toast-content">
+            <h4>Achievement Unlocked!</h4>
+            <p>${ach.title}</p>
+        </div>
+    `;
+    
+    UI.toastContainer.appendChild(toast);
+    
+    // Trigger animation
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            toast.classList.add('show');
+        });
+    });
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 500);
+    }, 4000);
+}
+
+function showAchievements() {
+    screens.mainMenu.classList.remove('active');
+    screens.achievementsScreen.classList.add('active');
+    UI.achievementsList.innerHTML = '';
+
+    Object.values(state.achievements).forEach(ach => {
+        if (ach.secret && !ach.unlocked) return; // Hide secret achievements until unlocked
+
+        const el = document.createElement('div');
+        el.className = `achievement-item ${ach.unlocked ? 'unlocked' : ''}`;
+        
+        // Use a generic lock icon if locked
+        const icon = ach.unlocked ? '🏆' : '🔒';
+        
+        el.innerHTML = `
+            <div class="achievement-icon">${icon}</div>
+            <div class="achievement-details">
+                <div class="achievement-title">${ach.title}</div>
+                <div class="achievement-desc">${ach.unlocked ? ach.desc : (ach.secret ? '???' : ach.desc)}</div>
+            </div>
+        `;
+        UI.achievementsList.appendChild(el);
+    });
+}
+
+function hideAchievements() {
+    screens.achievementsScreen.classList.remove('active');
+    screens.mainMenu.classList.add('active');
 }
 
 // Start

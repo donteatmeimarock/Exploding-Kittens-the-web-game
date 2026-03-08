@@ -382,3 +382,106 @@ button {
     width: 90px;
     height: 126px;
 }
+
+/* Achievements Screen & Toasts */
+#achievements-screen .menu-content {
+    max-width: 800px;
+    width: 90%;
+}
+
+.achievement-item {
+    display: flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 15px;
+    gap: 20px;
+    transition: var(--transition-fast);
+}
+
+.achievement-item.unlocked {
+    background: rgba(255, 149, 0, 0.1);
+    border-color: var(--accent-orange);
+    box-shadow: 0 4px 15px rgba(255, 149, 0, 0.2);
+}
+
+.achievement-icon {
+    font-size: 2.5rem;
+    filter: grayscale(100%);
+    opacity: 0.5;
+}
+
+.achievement-item.unlocked .achievement-icon {
+    filter: grayscale(0%);
+    opacity: 1;
+}
+
+.achievement-details {
+    flex: 1;
+    text-align: left;
+}
+
+.achievement-title {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+}
+
+.achievement-item.unlocked .achievement-title {
+    color: var(--accent-orange);
+}
+
+.achievement-desc {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+#toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.toast {
+    background: rgba(20, 20, 20, 0.95);
+    border: 2px solid var(--accent-orange);
+    border-radius: 8px;
+    padding: 15px 20px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    transform: translateX(120%);
+    opacity: 0;
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.toast.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.toast-icon {
+    font-size: 2rem;
+}
+
+.toast-content h4 {
+    margin: 0 0 5px 0;
+    color: var(--accent-orange);
+    font-size: 1rem;
+    text-transform: uppercase;
+}
+
+.toast-content p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
