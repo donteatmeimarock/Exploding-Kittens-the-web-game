@@ -61,12 +61,19 @@ let state = {
         'nope': { id: 'nope', title: 'Not Happening!', desc: 'Use a Nope 10 times', secret: false, unlocked: false },
         'close': { id: 'close', title: 'Close Call', desc: 'Defuse an Exploding Kitten', secret: false, unlocked: false },
         'ninelives': { id: 'ninelives', title: 'Nine Lives', desc: 'Use a Defuse nine times in a single game', secret: true, unlocked: false },
-        'robbery': { id: 'robbery', title: 'Authorized Robbery', desc: 'Use a pair of cat cards three times in a single game', secret: false, unlocked: false }
+        'robbery': { id: 'robbery', title: 'Authorized Robbery', desc: 'Use a pair of cat cards three times in a single game', secret: false, unlocked: false },
+        'skip': { id: 'skip', title: 'Skippy the Peanut Butter', desc: 'Skip 3 times', secret: false, unlocked: false },
+        'ralph': { id: 'ralph', title: 'Is Ralph Still Puking Rainbows?', desc: 'Use a Rainbow-Ralphing Cat pair twice in a single game', secret: false, unlocked: false },
+        'lose5': { id: 'lose5', title: 'What... Happened?', desc: 'Explode and lose five times', secret: true, unlocked: false },
+        'attack': { id: 'attack', title: 'ATTACK HIM!', desc: 'Use an Attack card for the first time', secret: false, unlocked: false }
     },
     stats: {
         globalNopes: 0,
         gameDefuses: 0,
-        gamePairs: 0
+        gamePairs: 0,
+        globalSkips: 0,
+        gameRalphPairs: 0,
+        globalExplosions: 0
     }
 };
 
@@ -152,6 +159,7 @@ function startGame(mode) {
     // Reset per-game achievement stats
     state.stats.gameDefuses = 0;
     state.stats.gamePairs = 0;
+    state.stats.gameRalphPairs = 0;
 
     render();
 }
@@ -406,6 +414,14 @@ function handleExplodingKitten(playerIndex) {
         const defuseCount = winningPlayer.hand.filter(c => c === CardTypes.DEFUSE).length;
         if (!winningPlayer.isAI && defuseCount >= 2) {
             unlockAchievement('lucky');
+        }
+
+        if (!player.isAI) {
+            state.stats.globalExplosions++;
+            saveAchievements();
+            if (state.stats.globalExplosions >= 5) {
+                unlockAchievement('lose5');
+            }
         }
 
         showModal("BOOM!", `${player.name} exploded! Game Over.`, "Restart", () => {
@@ -726,6 +742,12 @@ function applyCardEffect(cards, playerIndex) {
             if (state.stats.gamePairs >= 3) {
                 unlockAchievement('robbery');
             }
+            if (cards[0] === CardTypes.CAT5) {
+                state.stats.gameRalphPairs++;
+                if (state.stats.gameRalphPairs >= 2) {
+                    unlockAchievement('ralph');
+                }
+            }
         }
         // Steal a random card
         if (targetPlayer.hand.length > 0) {
@@ -740,6 +762,7 @@ function applyCardEffect(cards, playerIndex) {
     const card = cards[0];
     switch (card) {
         case CardTypes.ATTACK:
+            if (!player.isAI) unlockAchievement('attack');
             state.turnsRemaining = 0;
             const nextPlayer = (state.currentPlayerIndex + 1) % state.players.length;
             endTurn();
@@ -748,6 +771,11 @@ function applyCardEffect(cards, playerIndex) {
             state.turnsRemaining = 2;
             break;
         case CardTypes.SKIP:
+            if (!player.isAI) {
+                state.stats.globalSkips++;
+                saveAchievements();
+                if (state.stats.globalSkips >= 3) unlockAchievement('skip');
+            }
             state.turnsRemaining--;
             if (state.turnsRemaining <= 0) {
                 endTurn();
@@ -962,13 +990,17 @@ function loadAchievements() {
                 if (data[key]) state.achievements[key].unlocked = data[key];
             });
             if (data.globalNopes) state.stats.globalNopes = data.globalNopes;
+            if (data.globalSkips) state.stats.globalSkips = data.globalSkips;
+            if (data.globalExplosions) state.stats.globalExplosions = data.globalExplosions;
         } catch(e) { console.error("Could not parse saved achievements."); }
     }
 }
 
 function saveAchievements() {
     const data = {
-        globalNopes: state.stats.globalNopes
+        globalNopes: state.stats.globalNopes,
+        globalSkips: state.stats.globalSkips,
+        globalExplosions: state.stats.globalExplosions
     };
     Object.keys(state.achievements).forEach(key => {
         data[key] = state.achievements[key].unlocked;
