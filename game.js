@@ -96,6 +96,7 @@ function startGame(mode) {
     state.mode = mode;
     state.isGameOver = false;
     screens.mainMenu.classList.remove('active');
+    UI.lobbyScreen.classList.remove('active'); // Ensure lobby hides when game starts
     screens.gameScreen.classList.add('active');
 
     setupDeck();
@@ -726,8 +727,19 @@ function render() {
     // Active Player Hand
     UI.playerHand.innerHTML = '';
     
-    let bottomPlayerIndex = state.mode === 'ai' ? 0 : state.currentPlayerIndex;
-    let topPlayerIndex = state.mode === 'ai' ? 1 : (state.currentPlayerIndex + 1) % 2;
+    let bottomPlayerIndex;
+    let topPlayerIndex;
+    
+    if (state.mode === 'ai') {
+        bottomPlayerIndex = 0;
+        topPlayerIndex = 1;
+    } else if (state.mode === 'online') {
+        bottomPlayerIndex = state.isHost ? 0 : 1;
+        topPlayerIndex = state.isHost ? 1 : 0;
+    } else {
+        bottomPlayerIndex = state.currentPlayerIndex;
+        topPlayerIndex = (state.currentPlayerIndex + 1) % 2;
+    }
     
     const bottomPlayer = state.players[bottomPlayerIndex];
     const topPlayer = state.players[topPlayerIndex];
